@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Game</title>
+    <style>
+        html,
+        body {
+            overflow: hidden;
+        }
+
+        /* Konteynerin arka plan rengini ve boyutunu belirle */
+        .container {
+            background-color: rgb(33, 160, 219);
+            background-size: cover;
+        }
+
+        /* Yolun genişliği, yüksekliği, rengi ve kenar çizgilerini belirle */
+        .road {
+            width: 400px; /* Yol genişliği */
+            height: 100vh; /* Yol yüksekliği (ekranın tamamını kaplar) */
+            background-color: black; /* Yol arka plan rengi */
+            margin: auto; /* Yolu yatayda ortala */
+            position: relative; /* Göreli konumlandırma */
+            border-left: 7px dashed rgb(38, 255, 0); /* Sol kenar çizgisi */
+            border-right: 7px dashed rgb(38, 255, 0); /* Sağ kenar çizgisi */
+        }
+
+        /* Oyuncu aracının genişliği, yüksekliği ve arka plan resmini belirle */
+        .car {
+            width: 48px; /* Aracın genişliği */
+            height: 107px; /* Aracın yüksekliği */
+            background-color: black; /* Arka plan rengini siyah yap */
+            position: absolute; /* Mutlak konumlandırma */
+            bottom: 120px; /* Ekranın altından 120 piksel yukarıda */
+            background-image: url('my_car.png'); /* Aracın arka plan resmi */
+            background-size: cover; /* Arka planı kapla */
+            z-index: 1; /* Z indeksini ayarla */
+        }
+
+        /* Diğer araçların genişliği, yüksekliği ve arka plan resmini belirle */
+        .vehicle {
+            width: 48px; /* Araç genişliği */
+            height: 95px; /* Araç yüksekliği */
+            background-color: black; /* Arka plan rengini siyah yap */
+            position: absolute; /* Mutlak konumlandırma */
+            bottom: 120px; /* Ekranın altından 120 piksel yukarıda */
+            background-image: url('cars.png'); /* Araç arka plan resmi */
+            background-size: cover; /* Arka planı kapla */
+        }
+
+        /* Yolda beyaz çizgilerin genişliği, yüksekliği ve rengini belirle */
+        .line1 {
+            width: 10px; /* Çizginin genişliği */
+            height: 100px; /* Çizginin yüksekliği */
+            position: absolute; /* Mutlak konumlandırma */
+            background-color: white; /* Arka plan rengini beyaz yap */
+            margin-left: 126.66666667px; /* Sol kenardan 126.67 piksel uzaklık */
+            z-index: 0; /* Z indeksini ayarla */
+        }
+
+        .line2 {
+            width: 10px; /* Çizginin genişliği */
+            height: 100px; /* Çizginin yüksekliği */
+            position: absolute; /* Mutlak konumlandırma */
+            background-color: white; /* Arka plan rengini beyaz yap */
+            margin-left: 253.33333px; /* Sol kenardan 253.33 piksel uzaklık */
+            z-index: 0; /* Z indeksini ayarla */
+        }
+
+        /* Oyun sona erdiğinde gösterilecek kutunun stilini belirle */
+        .game-over-container {
+            position: absolute; /* Mutlak konumlandırma */
+            top: 50%; /* Üst kenardan yüzde 50 mesafe */
+            left: 50%; /* Sol kenardan yüzde 50 mesafe */
+            transform: translate(-50%, -50%); /* Kutuyu ekrana ortala */
+            width: 250px; /* Kutunun genişliği */
+            height: 150px; /* Kutunun yüksekliği */
+            background-color: silver; /* Arka plan rengini gümüş yap */
+            text-align: center; /* Metni ortala */
+            padding: 10px; /* İç boşluğu ayarla */
+            border-radius: 8px; /* Kenarları yuvarla */
+            z-index: 100; /* Z indeksini ayarla */
+        }
+
+        /* Oyun sona erdiğinde gösterilecek metin stilini belirle */
+        .game-over-text {
+            color: red; /* Metin rengini kırmızı yap */
+            font-size: 1.5em; /* Metin boyutunu belirle */
+            font-weight: bold; /* Metin kalınlığını artır */
+            margin-bottom: 20px; /* Alt boşluğu artır */
+        }
+
+        /* Yeniden başlatma butonunun üst kenar boşluğunu belirle */
+        .restart-button {
+            margin-top: 20px; /* Üst kenar boşluğunu ayarla */
+        }
+
+        /* Başlangıç butonu ve kutunun stilini belirle */
+        .start-container {
+            position: absolute; /* Mutlak konumlandırma */
+            top: 50%; /* Üst kenardan yüzde 50 mesafe */
+            left: 50%; /* Sol kenardan yüzde 50 mesafe */
+            transform: translate(-50%, -50%); /* Kutuyu ekrana ortala */
+            width: 250px; /* Kutunun genişliği */
+            height: 150px; /* Kutunun yüksekliği */
+            background-color: silver; /* Arka plan rengini gümüş yap */
+            text-align: center; /* Metni ortala */
+            padding: 10px; /* İç boşluğu ayarla */
+            border-radius: 8px; /* Kenarları yuvarla */
+            z-index: 100; /* Z indeksini ayarla */
+        }
+
+        /* Başlangıç ve bilgi butonlarının üst kenar boşluğunu belirle */
+        .start-button,
+        .info-button {
+            margin-top: 35px; /* Üst kenar boşluğunu ayarla */
+        }
+
+        /* Bilgi kutusunun stilini belirle */
+        .info-container {
+            position: absolute; /* Mutlak konumlandırma */
+            top: 50%; /* Üst kenardan yüzde 50 mesafe */
+            left: 50%; /* Sol kenardan yüzde 50 mesafe */
+            transform: translate(-50%, -50%); /* Kutuyu ekrana ortala */
+            width: 600px; /* Kutunun genişliği */
+            height: 500px; /* Kutunun yüksekliği */
+            background-color: rgb(193, 193, 193); /* Arka plan rengini gri yap */
+            text-align: center; /* Metni ortala */
+            padding: 20px; /* İç boşluğu ayarla */
+            border-radius: 8px; /* Kenarları yuvarla */
+            z-index: 100; /* Z indeksini ayarla */
+            display: none; /* Varsayılan olarak gizle */
+        }
+
+        /* Bilgi kutusundaki metinlerin alt boşluğunu belirle */
+        .info-text {
+            margin-bottom: 20px; /* Alt boşluğu artır */
+        }
+
+        /* Bilgi kutusunda kapatma butonunun üst kenar boşluğunu belirle */
+        .info-close-button {
+            margin-top: 20px; /* Üst kenar boşluğunu ayarla */
+        }
+
+        /* Skor göstergesinin konumu ve stilini belirle */
+        #score {
+            position: absolute; /* Mutlak konumlandırma */
+            top: 20px; /* Üst kenardan 20 piksel aşağıda */
+            left: 20px; /* Sol kenardan 20 piksel içeride */
+            color: rgb(0, 0, 0); /* Metin rengini siyah yap */
+            font-size: 40px; /* Metin boyutunu belirle */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="road"></div>
+        <div id="score">Score: 0</div> <!-- Skor göstergesi -->
+    </div>
+
+    <!-- Başlangıç butonunun yerleştirildiği kare -->
+    <div id="start-container" class="start-container">
+        <div class="start-text">Press "Start" to Begin!</div>
+        <button id="start-button" class="start-button">Start Game</button><br>
+        <button id="info-button" class="info-button">Info</button>
+    </div>
+
+    <div id="info-container" class="info-container">
+        <div class="info-text">
+            <strong>Game Objectives:</strong>
+            <ul>
+                <li>Avoid colliding with other vehicles.</li>
+                <li>Increase your score by surviving as long as possible.</li>
+                <li>Achieve milestones to increase the game's speed.</li>
+            </ul>
+
+            <strong>Controls:</strong>
+            <ul>
+                <li><strong>Arrow keys:</strong> Control the car (up, down, left, right).</li>
+                <li><strong>Space bar:</strong> Activate turbo speed.</li>
+                <li><strong>H:</strong> Play car horn sound.</li>
+            </ul>
+
+            <br>
+
+            <strong>Oyun Hedefleri:</strong>
+            <ul>
+                <li>Diğer araçlarla çarpışmaktan kaçının.</li>
+                <li>Mümkün olduğunca uzun süre hayatta kalarak puanınızı artırın.</li>
+                <li>Milestone'lara ulaşarak oyunun hızını artırın.</li>
+            </ul>
+
+            <strong>Kontroller:</strong>
+            <ul>
+                <li><strong>Yön Tuşları:</strong> Arabayı yönetin (yukarı, aşağı, sol, sağ).</li>
+                <li><strong>Boşluk Tuşu:</strong> Turbo hızı etkinleştirin.</li>
+                <li><strong>H:</strong> Korna sesini çalın.</li>
+            </ul>
+        </div>
+        <button id="info-close-button" class="info-close-button">Close / Kapat</button>
+    </div>
+
+    <script>
+        const roadArea = document.querySelector(".road");
+        const scoreElement = document.querySelector("#score");
+
+        let player = { start: false, step: 5, x: 0, y: 0 };
+        let score = 0;
+        let maxScore = 0;
+        let scoreInterval;
+        let scoreMilestone = 800;
+
+
+
+        // "car_horn.wav" ses dosyasını yükleyin
+        const hornSound = new Audio('car_horn.wav');
+
+        // "keydown" olayını dinleyen işlev
+        document.addEventListener("keydown", function (event) {
+            // "Space" tuşuna basıldığında ses dosyasını çalın
+            if (event.key === 'h' || event.key === 'H') {
+                hornSound.play();
+            }
+
+            // Oyuncunun tuşlara basma durumunu günceller
+            player[event.key] = true;
+
+            // "t" veya "T" tuşuna basıldığında turbo hızını etkinleştirir
+            if (event.key === ' ') {
+                player.step = player.step + 5; // Turbo hızını ayarlar
+            }
+        });
+
+        // "keyup" olayını dinleyen işlev
+        document.addEventListener("keyup", function (event) {
+            // Oyuncunun tuşlara basma durumunu günceller
+            player[event.key] = false;
+
+            // "t" veya "T" tuşuna basmayı bırakıldığında hız hesaplaması
+            if (event.key === ' ') {
+                // Skoru 800'e bölüp kaç tane 800 içerdiğini bulur
+                const numOf800 = Math.floor(score / scoreMilestone);
+
+                // Bu sonucu 0.5 ile çarpar ve 5 ekleyerek oyunun hızını belirler
+                player.step = (numOf800 * 0.5) + 5;
+            }
+        });
+
+        // Bilgi düğmesine basıldığında bilgi kareni açılır
+        const infoButton = document.querySelector("#info-button");
+        infoButton.addEventListener("click", function () {
+            const infoContainer = document.querySelector("#info-container");
+            infoContainer.style.display = "block";
+        });
+
+        // Bilgi karenin kapatılmasını sağlamak için "Close" butonunu dinleyin
+        const infoCloseButton = document.querySelector("#info-close-button");
+        infoCloseButton.addEventListener("click", function () {
+            const infoContainer = document.querySelector("#info-container");
+            infoContainer.style.display = "none";
+        });
+
+
+        function moveLines() {
+            const roadLines = document.querySelectorAll(".line1");
+            roadLines.forEach(function (line) {
+                if (line.y >= 700) {
+                    line.y -= 750;
+                }
+                line.y += player.step;
+                line.style.top = line.y + "px";
+            });
+        }
+
+        function movelines2() {
+            const roadLines2 = document.querySelectorAll(".line2");
+            roadLines2.forEach(function (line2) {
+                if (line2.y >= 700) {
+                    line2.y -= 750;
+                }
+                line2.y += player.step;
+                line2.style.top = line2.y + "px";
+            });
+        }
+
+        function moveVehicles(playerCar) {
+            const vehicles = document.querySelectorAll(".vehicle");
+            const playerCarBounds = playerCar.getBoundingClientRect();
+
+            vehicles.forEach(function (vehicle) {
+                const vehicleBounds = vehicle.getBoundingClientRect();
+
+                // Oyun sonu durumu
+                if (
+                    playerCarBounds.left < vehicleBounds.right &&
+                    playerCarBounds.right > vehicleBounds.left &&
+                    playerCarBounds.top < vehicleBounds.bottom &&
+                    playerCarBounds.bottom > vehicleBounds.top
+                ) {
+                    player.start = false;
+
+                    // Maksimum skoru güncelle
+                    if (score > maxScore) {
+                        maxScore = score;
+                    }
+
+                    // Oyun sonu mesajını ve yeniden başlatma butonunu göster
+                    showGameOver();
+
+                    // Zamanlayıcıyı durdur
+                    clearInterval(scoreInterval);
+                    return;
+                }
+
+                if (vehicle.y > 750) {
+                    vehicle.y = -300;
+                    vehicle.style.left = Math.floor(Math.random() * 350) + "px";
+                }
+                vehicle.y += player.step;
+                vehicle.style.top = vehicle.y + "px";
+            });
+        }
+
+        function playArea() {
+            const playerCar = document.querySelector(".car");
+            const roadBounds = roadArea.getBoundingClientRect();
+
+            if (player.start) {
+                moveLines();
+                movelines2();
+                moveVehicles(playerCar);
+
+                if (player.ArrowUp && player.y > roadBounds.top) {
+                    player.y -= player.step;
+                }
+
+                if (player.ArrowDown && player.y < roadBounds.bottom - 107) {
+                    player.y += player.step;
+                }
+
+                if (player.ArrowLeft && player.x > 0) {
+                    player.x -= player.step;
+                }
+
+                if (player.ArrowRight && player.x < roadBounds.width - 62) {
+                    player.x += player.step;
+                }
+
+                playerCar.style.top = player.y + "px";
+                playerCar.style.left = player.x + "px";
+
+                window.requestAnimationFrame(playArea);
+            }
+        }
+
+        function init() {
+            player.start = true;
+
+            roadArea.innerHTML = '';
+
+            player = { start: true, step: 5, x: 0, y: 0 };
+
+            const playerCar = document.createElement("div");
+            playerCar.setAttribute("class", "car");
+            roadArea.appendChild(playerCar);
+
+            player.x = playerCar.offsetLeft;
+            player.y = playerCar.offsetTop;
+
+            // Yol çizgilerini oluşturun
+            for (let i = 0; i < 5; i++) {
+                const line = document.createElement("div");
+                line.setAttribute("class", "line1");
+                line.y = i * 150;
+                line.style.top = line.y + "px";
+                roadArea.appendChild(line);
+            }
+
+            for (let i = 0; i < 5; i++) {
+                const linee = document.createElement("div");
+                linee.setAttribute("class", "line2");
+                linee.y = i * 150;
+                linee.style.top = linee.y + "px";
+                roadArea.appendChild(linee);
+            }
+
+            // Araçları oluşturun
+            for (let i = 0; i < 4; i++) {
+                const vehicle = document.createElement("div");
+                vehicle.setAttribute("class", "vehicle");
+                vehicle.y = (i + 1) * 300 * -1;
+                vehicle.style.top = vehicle.y + "px";
+                vehicle.style.left = Math.floor(Math.random() * 350) + "px";
+                roadArea.appendChild(vehicle);
+            }
+
+            // Skor zamanlayıcısı
+            scoreInterval = setInterval(() => {
+                score += 1;
+                scoreElement.textContent = `Score: ${score}`;
+
+                // Skor seviyesine göre oyunun hızını artırıyoruz
+                if (score % scoreMilestone === 0) {
+                    player.step += 0.5; // Adım boyutunu biraz artırıyoruz
+                }
+            }, 10);
+            playArea();
+        }
+
+        function restartGame() {
+            const gameOverContainer = document.querySelector('.game-over-container');
+            if (gameOverContainer) {
+                gameOverContainer.remove();
+            }
+
+            // Skoru sıfırlayın ve oyunu yeniden başlatın
+            score = 0;
+            scoreElement.textContent = `Score: 0`;
+            player.step = 5; // Oyunun başlangıç hızına geri döner
+
+            init();
+        }
+
+        function showGameOver() {
+            const gameOverContainer = document.createElement('div');
+            gameOverContainer.setAttribute('class', 'game-over-container');
+
+            // "GAME OVER!" mesajını ekleyin
+            const gameOverText = document.createElement('div');
+            gameOverText.textContent = 'GAME OVER!';
+            gameOverText.setAttribute('class', 'game-over-text');
+            gameOverContainer.appendChild(gameOverText);
+
+            // "Your Score:" ve oyuncunun skorunu ekleyin
+            const yourScoreText = document.createElement('div');
+            yourScoreText.textContent = `Your Score: ${score}`;
+            gameOverContainer.appendChild(yourScoreText);
+
+
+            // "Max Score:" ve maksimum skoru ekleyin
+            const maxScoreText = document.createElement('div');
+            maxScoreText.textContent = `Max Score: ${maxScore}`;
+            gameOverContainer.appendChild(maxScoreText);
+
+            // Yeniden başlatma butonunu ekleyin
+            const restartButton = document.createElement('button');
+            restartButton.textContent = 'Restart Game';
+            restartButton.setAttribute('class', 'restart-button');
+            restartButton.addEventListener('click', restartGame);
+            gameOverContainer.appendChild(restartButton);
+
+            // Oyunun ortasına "gameOverContainer" ekleyin
+            document.body.appendChild(gameOverContainer);
+        }
+
+
+        // Start butonunun işlevselliği
+        const startButton = document.querySelector("#start-button");
+        startButton.addEventListener("click", function () {
+            // Başlangıç butonunu ve start-container'ı gizle
+            document.querySelector("#start-container").style.display = "none";
+
+            // Oyunu başlat
+            init();
+        });
+    </script>
+
+
+</body>
+
+</html>
